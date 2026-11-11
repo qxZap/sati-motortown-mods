@@ -24,7 +24,7 @@ DIST = ROOT / "dist"
 MTL = Path(os.environ.get("MTLIVEMAP", r"D:/MTLiveMap"))
 INJECTOR = Path(os.environ.get("MT_INJECTOR", MTL / "MTBPInjector/bin/Release/net8.0/MTBPInjector.exe"))
 REPAK = Path(os.environ.get("MT_REPAK", MTL / "tools/repak.exe"))
-MAPPINGS = Path(os.environ.get("MT_MAPPINGS", "D:/MT/MotorTown720T1.usmap"))
+MAPPINGS = Path(os.environ.get("MT_MAPPINGS", "D:/MT/MotorTown720T6.usmap"))
 VANILLA = Path(os.environ.get("MT_VANILLA", MTL / "vanilla_extract/MotorTown/Content"))
 
 
@@ -75,16 +75,55 @@ def dump_to_grain():
 
 
 # --- 1. Atlas 8x8 -----------------------------------------------------------
+# The vanilla Atlas 8x4 dump truck made 8x8: all four axles driven, every
+# differential lockable. vehicle-awd rewires the drivetrain (front/rear + one
+# 2-wheel diff per extra axle) and --lockable sets bAllowLockableLSD on each.
+# Only the modified blueprint ships -- it references the same vanilla meshes, so
+# no tables and no DataTable-framework routing are needed.
+#
+# The verb MUST read the vanilla blueprint in place (beside its vanilla
+# neighbours) or UAssetAPI parses it as RawExport and the edit silently no-ops;
+# it writes the modified .uasset + .uexp into the stage.
 def atlas_8x8():
-    print("[Atlas 8x8]  pending: drive-mode selector + 3.19 ratio + all-4-powered")
-    print("  needs the drivetrain mechanism confirmed (Sati's notes / game test)")
-    print("  and the Vehicles_Truck / VehicleParts edits routed through the DataTable framework")
+    print("[Atlas 8x8]")
+    need(VANILLA, "vanilla extract (MT_VANILLA)")
+    rel = "Cars/Models/Atlas/Atlas_8x4_Dump"
+    src = VANILLA / f"{rel}.uasset"
+    need(src, "vanilla Atlas_8x4_Dump.uasset")
+    stage = WORK / "Atlas8x8_P/MotorTown/Content/Cars/Models/Atlas"
+    if (WORK / "Atlas8x8_P").exists():
+        shutil.rmtree(WORK / "Atlas8x8_P")
+    stage.mkdir(parents=True)
+    inject("vehicle-awd", "--uasset", src, "--mappings", MAPPINGS,
+           "--each-set-awd", "--lockable", "--output", stage / "Atlas_8x4_Dump.uasset")
+    pack(WORK / "Atlas8x8_P", "satigt3_Atlas8x8_P")
 
 
-# --- 2. Longhorn Rollback liftable axles ------------------------------------
+# --- 2. Longhorn Rollback: lower the rear -----------------------------------
+# Drop the rear of Longhorn_Rollback and its UL variant by setting a negative
+# DefaultRideHeightAdjust on the rear wheels (MHWheelComponent). Negative lowers,
+# positive raises. First-pass value/wheel-set -- tune in game.
+# Like Atlas, the verb reads each blueprint in place (beside its vanilla
+# neighbours) and writes the modified .uasset + .uexp into the stage.
+LH_VEHICLES = ["Longhorn_Rollback", "Longhorn_Rollback_UL"]
+LH_REAR_WHEELS = "Wheel2,Wheel3,Wheel4,Wheel5"   # the four rear wheels of the 6-wheeler
+LH_ADJUST = os.environ.get("LH_ADJUST", "-5")    # cm; negative = lower
+
+
 def longhorn_liftable():
-    print("[Longhorn liftable]  pending: axle-lift mechanism confirmed in game")
-    print("  copy the Atlas G15 Add/Remove axle-lift part pattern onto Longhorn_Rollback (+UL)")
+    print("[Longhorn lower-rear]")
+    need(VANILLA, "vanilla extract (MT_VANILLA)")
+    stage = WORK / "LonghornLowered_P/MotorTown/Content/Cars/Models/Longhorn_Rollback"
+    if (WORK / "LonghornLowered_P").exists():
+        shutil.rmtree(WORK / "LonghornLowered_P")
+    stage.mkdir(parents=True)
+    for v in LH_VEHICLES:
+        src = VANILLA / f"Cars/Models/Longhorn_Rollback/{v}.uasset"
+        need(src, f"vanilla {v}.uasset")
+        inject("vehicle-ride-height", "--uasset", src, "--mappings", MAPPINGS,
+               "--wheels", LH_REAR_WHEELS, "--adjust", LH_ADJUST,
+               "--output", stage / f"{v}.uasset")
+    pack(WORK / "LonghornLowered_P", "satigt3_LonghornLowered_P")
 
 
 MODS = {"dtg": dump_to_grain, "atlas": atlas_8x8, "longhorn": longhorn_liftable}
