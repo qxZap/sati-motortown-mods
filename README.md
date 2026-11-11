@@ -13,8 +13,8 @@ Maintained by **qxZap** for now; Sati joins as a contributor later.
 | Mod | What it does | Status |
 |-----|--------------|--------|
 | **Dump to Grain** | The 8 bulk cargos (Sand, Fine Sand, Coal, Iron Ore, Limestone, Limestone Rock, Copper Ore, Copper Concentrate) gain the `Grain` cargo-space type, so they load into grain hoppers (Hobber Lead / Rear) as well as dump trailers. | **built** (0.7.20), pending in-game load test |
-| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: all four axles driven, every differential lockable. | **built** (0.7.20), pending in-game test |
-| **Longhorn Rollback lowered rear** | Lowers the rear ride height of the Longhorn Rollback and its UL version. | **built** (0.7.20, first-pass value), pending in-game test |
+| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: the two front axles are driven too (own differentials, transmission-fed), and all four differentials are lockable (RearLSD 1–4). | **rebuilt** (0.7.20) to match Sati's working 7.18 structure, pending in-game test |
+| **Longhorn Rollback axle lift** | Pressing `-` drops the axles (the standard MT axle-lift part). | **parked** — recipe not done yet (the first attempt baked a permanent rear drop, which isn't the ask) |
 
 ## Building
 

@@ -75,55 +75,63 @@ def dump_to_grain():
 
 
 # --- 1. Atlas 8x8 -----------------------------------------------------------
-# The vanilla Atlas 8x4 dump truck made 8x8: all four axles driven, every
-# differential lockable. vehicle-awd rewires the drivetrain (front/rear + one
-# 2-wheel diff per extra axle) and --lockable sets bAllowLockableLSD on each.
-# Only the modified blueprint ships -- it references the same vanilla meshes, so
-# no tables and no DataTable-framework routing are needed.
+# The vanilla Atlas 8x4 dump truck made 8x8: drive its two UN-driven front
+# axles too, and make every differential lockable.
 #
-# The verb MUST read the vanilla blueprint in place (beside its vanilla
-# neighbours) or UAssetAPI parses it as RawExport and the edit silently no-ops;
-# it writes the modified .uasset + .uexp into the stage.
+# Vanilla has Differential1 (W4,5) and Differential2 (W6,7) -- the driven rear
+# axles -- while the front wheels W0-3 name no differential. So: clone the two
+# vanilla diffs into Differential3/Differential4 (each carries the vanilla
+# TransmissionComponentName, which is what actually feeds it power), give them
+# unique LSDSlotIndex 2/3 (the lock UI keys on the slot -- a collision is why a
+# naive clone shows no "lockable" interaction), point the front axles at them,
+# and set LinkGearRatio=-1 on each axle's inner wheel (W5/W7 already have it).
+# Result: 4 diffs, 4 driven axles, 4 lockable LSDs -- the structure of Sati's
+# working 7.18 build. (`vehicle-awd` produced the Biceps-class bug: all axles on
+# one wheel pair, an orphan 5th diff, and no transmission link.)
+#
+# No neighbours needed -- the injector round-trips this blueprint as NormalExport
+# from a bare path, so the chain reads/writes the stage file in place.
+def _ic(inj_asset, out, *args):
+    inject(*args, "--uasset", inj_asset, "--mappings", MAPPINGS, "--output", out)
+
+
 def atlas_8x8():
     print("[Atlas 8x8]")
     need(VANILLA, "vanilla extract (MT_VANILLA)")
-    rel = "Cars/Models/Atlas/Atlas_8x4_Dump"
-    src = VANILLA / f"{rel}.uasset"
+    src = VANILLA / "Cars/Models/Atlas/Atlas_8x4_Dump.uasset"
     need(src, "vanilla Atlas_8x4_Dump.uasset")
     stage = WORK / "Atlas8x8_P/MotorTown/Content/Cars/Models/Atlas"
     if (WORK / "Atlas8x8_P").exists():
         shutil.rmtree(WORK / "Atlas8x8_P")
     stage.mkdir(parents=True)
-    inject("vehicle-awd", "--uasset", src, "--mappings", MAPPINGS,
-           "--each-set-awd", "--lockable", "--output", stage / "Atlas_8x4_Dump.uasset")
+    a = stage / "Atlas_8x4_Dump.uasset"
+    # clone the two front-axle diffs (step 1 reads vanilla, the rest read the stage)
+    _ic(src, a, "vehicle-clone-component", "--from", "Differential1_GEN_VARIABLE",
+        "--name", "Differential3", "--int", "LSDSlotIndex=2", "--bool", "bAllowLockableLSD=1")
+    _ic(a, a, "vehicle-clone-component", "--from", "Differential2_GEN_VARIABLE",
+        "--name", "Differential4", "--int", "LSDSlotIndex=3", "--bool", "bAllowLockableLSD=1")
+    # the two vanilla diffs become lockable too
+    _ic(a, a, "set-component-props", "--export", "Differential1_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1")
+    _ic(a, a, "set-component-props", "--export", "Differential2_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1")
+    # drive the front axles; inner wheel of each gets LinkGearRatio=-1
+    _ic(a, a, "set-component-props", "--export", "Wheel0", "--fname", "DifferentialComponentName=Differential3")
+    _ic(a, a, "set-component-props", "--export", "Wheel1", "--fname", "DifferentialComponentName=Differential3", "--float", "LinkGearRatio=-1")
+    _ic(a, a, "set-component-props", "--export", "Wheel2", "--fname", "DifferentialComponentName=Differential4")
+    _ic(a, a, "set-component-props", "--export", "Wheel3", "--fname", "DifferentialComponentName=Differential4", "--float", "LinkGearRatio=-1")
     pack(WORK / "Atlas8x8_P", "satigt3_Atlas8x8_P")
 
 
-# --- 2. Longhorn Rollback: lower the rear -----------------------------------
-# Drop the rear of Longhorn_Rollback and its UL variant by setting a negative
-# DefaultRideHeightAdjust on the rear wheels (MHWheelComponent). Negative lowers,
-# positive raises. First-pass value/wheel-set -- tune in game.
-# Like Atlas, the verb reads each blueprint in place (beside its vanilla
-# neighbours) and writes the modified .uasset + .uexp into the stage.
-LH_VEHICLES = ["Longhorn_Rollback", "Longhorn_Rollback_UL"]
-LH_REAR_WHEELS = "Wheel2,Wheel3,Wheel4,Wheel5"   # the four rear wheels of the 6-wheeler
-LH_ADJUST = os.environ.get("LH_ADJUST", "-5")    # cm; negative = lower
-
-
+# --- 2. Longhorn Rollback: lowering OPTION (axle lift) -----------------------
+# PARKED. The first attempt lowered the rear ride height permanently; Sati's
+# actual ask (11 Nov 2026) is the standard MT axle-lift: pressing "-" drops the
+# axles, so it's a toggleable part/interaction, not a baked height. That needs
+# the liftable-axle part pattern (cf. Atlas's G15 LeftAdd/RearAdd/Remove), which
+# isn't reverse-engineered yet and can't be verified without the game -- so this
+# ships nothing rather than send another wrong build.
 def longhorn_liftable():
-    print("[Longhorn lower-rear]")
-    need(VANILLA, "vanilla extract (MT_VANILLA)")
-    stage = WORK / "LonghornLowered_P/MotorTown/Content/Cars/Models/Longhorn_Rollback"
-    if (WORK / "LonghornLowered_P").exists():
-        shutil.rmtree(WORK / "LonghornLowered_P")
-    stage.mkdir(parents=True)
-    for v in LH_VEHICLES:
-        src = VANILLA / f"Cars/Models/Longhorn_Rollback/{v}.uasset"
-        need(src, f"vanilla {v}.uasset")
-        inject("vehicle-ride-height", "--uasset", src, "--mappings", MAPPINGS,
-               "--wheels", LH_REAR_WHEELS, "--adjust", LH_ADJUST,
-               "--output", stage / f"{v}.uasset")
-    pack(WORK / "LonghornLowered_P", "satigt3_LonghornLowered_P")
+    print("[Longhorn axle-lift] PARKED -- Sati wants the '-' key axle lift (a "
+          "toggleable part), not a permanent ride-height drop. Recipe TBD; "
+          "building nothing so no wrong pak ships.")
 
 
 MODS = {"dtg": dump_to_grain, "atlas": atlas_8x8, "longhorn": longhorn_liftable}
