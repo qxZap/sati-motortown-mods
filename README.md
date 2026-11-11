@@ -4,6 +4,8 @@ Source and automated builds for three Motor Town mods by **Sati** (satigt3).
 Each game update, the mods are rebuilt from vanilla by a script rather than by
 hand, so they stay correct across patches.
 
+Repo: https://github.com/qxZap/sati-motortown-mods
+
 Maintained by **qxZap** for now; Sati joins as a contributor later.
 
 ## The mods
