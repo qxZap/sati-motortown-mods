@@ -118,20 +118,42 @@ def atlas_8x8():
     _ic(a, a, "set-component-props", "--export", "Wheel1", "--fname", "DifferentialComponentName=Differential3", "--float", "LinkGearRatio=-1")
     _ic(a, a, "set-component-props", "--export", "Wheel2", "--fname", "DifferentialComponentName=Differential4")
     _ic(a, a, "set-component-props", "--export", "Wheel3", "--fname", "DifferentialComponentName=Differential4", "--float", "LinkGearRatio=-1")
+    # T-key drive modes (Sati, 11 Nov): Jemusi's DiffLockings as the struct template,
+    # rear = Diff1/2, front = Diff3/4, low range 3.19 with brake-TCS off like Jemusi's 4L
+    rear_open, rear_lock = "Differential1=Open,Differential2=Open", "Differential1=Locked,Differential2=Locked"
+    modes = ";".join([
+        f"RWD-Open|1|0|{rear_open},Differential3=Disconnect,Differential4=Disconnect",
+        f"AWD-Open|1|0|{rear_open},Differential3=Open,Differential4=Open",
+        f"RWD-Lock|3.19|1|{rear_lock},Differential3=Disconnect,Differential4=Disconnect",
+        f"AWD-Lock|3.19|1|{rear_lock},Differential3=Locked,Differential4=Locked",
+    ])
+    _ic(a, a, "set-diff-lockings", "--donor", VANILLA / "Cars/Models/Jemusi/Jemusi.uasset", "--modes", modes)
     pack(WORK / "Atlas8x8_P", "satigt3_Atlas8x8_P")
 
 
-# --- 2. Longhorn Rollback: lowering OPTION (axle lift) -----------------------
-# PARKED. The first attempt lowered the rear ride height permanently; Sati's
-# actual ask (11 Nov 2026) is the standard MT axle-lift: pressing "-" drops the
-# axles, so it's a toggleable part/interaction, not a baked height. That needs
-# the liftable-axle part pattern (cf. Atlas's G15 LeftAdd/RearAdd/Remove), which
-# isn't reverse-engineered yet and can't be verified without the game -- so this
-# ships nothing rather than send another wrong build.
+# --- 2. Longhorn Rollback: lowering OPTION on "-" ----------------------------
+# The "-" key is the vehicle's LiftAxles list (Atlas_6x2_Tanker: "Axle 3" lifts
+# W4/5 by 20). Lowering = both rear axles (W2/3, W4/5) moved up into the body by
+# the same amount, so the rear squats for loading. Longhorn_Rollback_UL is a child
+# blueprint of Longhorn_Rollback and inherits the list, so only the base ships.
+LH_LOWER = os.environ.get("LH_LOWER", "15")   # cm; wheel SpringStroke is 20
+
+
 def longhorn_liftable():
-    print("[Longhorn axle-lift] PARKED -- Sati wants the '-' key axle lift (a "
-          "toggleable part), not a permanent ride-height drop. Recipe TBD; "
-          "building nothing so no wrong pak ships.")
+    print("[Longhorn lowering]")
+    need(VANILLA, "vanilla extract (MT_VANILLA)")
+    src = VANILLA / "Cars/Models/Longhorn_Rollback/Longhorn_Rollback.uasset"
+    need(src, "vanilla Longhorn_Rollback.uasset")
+    root = WORK / "LonghornLowering_P"
+    if root.exists():
+        shutil.rmtree(root)
+    stage = root / "MotorTown/Content/Cars/Models/Longhorn_Rollback"
+    stage.mkdir(parents=True)
+    h = LH_LOWER
+    _ic(src, stage / "Longhorn_Rollback.uasset", "set-lift-axles",
+        "--donor", VANILLA / "Cars/Models/Atlas/Atlas_6x2_Tanker.uasset",
+        "--axles", f"Lower Rear|2={h},3={h},4={h},5={h}")
+    pack(root, "satigt3_LonghornLowering_P")
 
 
 MODS = {"dtg": dump_to_grain, "atlas": atlas_8x8, "longhorn": longhorn_liftable}

@@ -13,8 +13,8 @@ Maintained by **qxZap** for now; Sati joins as a contributor later.
 | Mod | What it does | Status |
 |-----|--------------|--------|
 | **Dump to Grain** | The 8 bulk cargos (Sand, Fine Sand, Coal, Iron Ore, Limestone, Limestone Rock, Copper Ore, Copper Concentrate) gain the `Grain` cargo-space type, so they load into grain hoppers (Hobber Lead / Rear) as well as dump trailers. | **built** (0.7.20), pending in-game load test |
-| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: the two front axles are driven too (own differentials, transmission-fed), and all four differentials are lockable (RearLSD 1–4). | **rebuilt** (0.7.20) to match Sati's working 7.18 structure, pending in-game test |
-| **Longhorn Rollback axle lift** | Pressing `-` drops the axles (the standard MT axle-lift part). | **parked** — recipe not done yet (the first attempt baked a permanent rear drop, which isn't the ask) |
+| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: the two front axles are driven too (own differentials), all four differentials lockable, and a drive-mode switch on `T`: **RWD-Open**, **AWD-Open**, **RWD-Lock** and **AWD-Lock** (the Lock modes use the 3.19 low range, like Jemusi/Brutus). | **built** (0.7.20), pending in-game test |
+| **Longhorn Rollback lowering** | Pressing `-` lowers the rear: both rear axles move up 15 cm into the body (the same axle-lift system as the Atlas tanker). The underlift variant inherits it. | **built** (0.7.20), pending in-game test |
 
 ## Building
 
@@ -24,7 +24,7 @@ so a new game version only needs fresh inputs, not new code.
 
 ```
 python build.py          # build everything that's ready
-python build.py dtg      # just Dump to Grain
+python build.py dtg      # just Dump to Grain (also: atlas, longhorn)
 ```
 
 After a Motor Town update: refresh the vanilla extract and the `.usmap`
