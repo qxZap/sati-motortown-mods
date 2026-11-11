@@ -12,9 +12,9 @@ Maintained by **qxZap** for now; Sati joins as a contributor later.
 
 | Mod | What it does | Status |
 |-----|--------------|--------|
-| **Dump to Grain** | The 8 bulk cargos (Sand, Fine Sand, Coal, Iron Ore, Limestone, Limestone Rock, Copper Ore, Copper Concentrate) gain the `Grain` cargo-space type, so they load into grain hoppers (Hobber Lead / Rear) as well as dump trailers. | **built** (0.7.20), pending in-game load test |
-| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: the two front axles are driven too (own differentials), all four differentials lockable, and a drive-mode switch on `T`: **RWD-Open**, **AWD-Open**, **RWD-Lock** and **AWD-Lock** (the Lock modes use the 3.19 low range, like Jemusi/Brutus). | **built** (0.7.20), pending in-game test |
-| **Longhorn Rollback lowering** | Pressing `-` lowers the rear: both rear axles move up 15 cm into the body (the same axle-lift system as the Atlas tanker). The underlift variant inherits it. | **built** (0.7.20), pending in-game test |
+| **Dump to Grain** | The 8 bulk cargos (Sand, Fine Sand, Coal, Iron Ore, Limestone, Limestone Rock, Copper Ore, Copper Concentrate) gain the `Grain` cargo-space type, so they load into grain hoppers (Hobber Lead / Rear) as well as dump trailers. | **working** on 0.7.20 (tested by Sati) |
+| **Atlas 8x8** | The vanilla Atlas 8x4 dump truck made 8x8: the two front axles are driven too (own differentials), all four differentials lockable (listed as Front LSD 1–2, Rear LSD 1–2), and a drive-mode switch on `T`: **RWD-Open**, **AWD-Open**, **RWD-Lock** and **AWD-Lock** (the Lock modes use the 3.19 low range, like Jemusi/Brutus). | **working** on 0.7.20 (tested by Sati) |
+| **Longhorn Rollback lowering** | Pressing `-` lowers the rear: both rear axles move up 15 cm into the body (the same axle-lift system as the Atlas tanker). The underlift variant inherits it. | **working** on 0.7.20 (tested by Sati) |
 
 ## Building
 
