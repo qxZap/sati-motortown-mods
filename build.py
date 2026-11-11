@@ -107,12 +107,15 @@ def atlas_8x8():
     a = stage / "Atlas_8x4_Dump.uasset"
     # clone the two front-axle diffs (step 1 reads vanilla, the rest read the stage)
     _ic(src, a, "vehicle-clone-component", "--from", "Differential1_GEN_VARIABLE",
-        "--name", "Differential3", "--int", "LSDSlotIndex=2", "--bool", "bAllowLockableLSD=1")
+        "--name", "Differential3", "--int", "LSDSlotIndex=0", "--bool", "bAllowLockableLSD=1")
     _ic(a, a, "vehicle-clone-component", "--from", "Differential2_GEN_VARIABLE",
-        "--name", "Differential4", "--int", "LSDSlotIndex=3", "--bool", "bAllowLockableLSD=1")
+        "--name", "Differential4", "--int", "LSDSlotIndex=1", "--bool", "bAllowLockableLSD=1")
     # the two vanilla diffs become lockable too
-    _ic(a, a, "set-component-props", "--export", "Differential1_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1")
-    _ic(a, a, "set-component-props", "--export", "Differential2_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1")
+    _ic(a, a, "set-component-props", "--export", "Differential1_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1", "--int", "LSDSlotIndex=2")
+    _ic(a, a, "set-component-props", "--export", "Differential2_GEN_VARIABLE", "--bool", "bAllowLockableLSD=1", "--int", "LSDSlotIndex=3")
+    # front diffs list first as "Front LSD 1/2" (slots 0/1), rear as "Rear LSD 1/2" (slots 2/3) -- Sati, 11 Nov
+    for d in ("Differential3_GEN_VARIABLE", "Differential4_GEN_VARIABLE"):
+        _ic(a, a, "set-component-props", "--export", d, "--textkey", "LSDSlotName=FrontLSD")
     # drive the front axles; inner wheel of each gets LinkGearRatio=-1
     _ic(a, a, "set-component-props", "--export", "Wheel0", "--fname", "DifferentialComponentName=Differential3")
     _ic(a, a, "set-component-props", "--export", "Wheel1", "--fname", "DifferentialComponentName=Differential3", "--float", "LinkGearRatio=-1")
